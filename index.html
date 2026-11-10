@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Workseed - Red Profesional Minimalista</title>
+    <!-- Tailwind CSS CDN para estilos responsivos y limpios -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f2f9f5',
+                            100: '#e8f5e9',
+                            200: '#b7e4c7',
+                            500: '#52b788',
+                            600: '#40916c',
+                            700: '#2d6a4f',
+                            800: '#1b4332',
+                            900: '#081c15',
+                        },
+                        surface: '#f4f6f5',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f4f6f5;
+            color: #2b3a35;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background-color: #b7e4c7;
+            border-radius: 9999px;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col antialiased">
+
+    <!-- Notificación Toast para Código de Verificación y Respuestas -->
+    <div id="toast-container" class="fixed top-5 right-5 z-50 space-y-3 pointer-events-none"></div>
+
+    <!-- PANTALLA 1: AUTENTICACIÓN / REGISTRO / INICIO DE SESIÓN -->
+    <div id="auth-screen" class="min-h-screen w-full flex items-center justify-center p-4 bg-surface">
+        <div class="w-full max-w-lg bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
+            <!-- Header Logo Auth -->
+            <div class="flex flex-col items-center mb-6 text-center">
+                <div class="w-14 h-14 bg-brand-100 rounded-full flex items-center justify-center mb-3">
+                    <svg width="34" height="34" viewBox="0 0 100 100">
+                        <path d="M50 65 C40 45 25 40 10 42 C20 65 40 70 50 65 Z" fill="#2d6a4f"/>
+                        <path d="M50 65 C60 45 75 40 90 42 C80 65 60 70 50 65 Z" fill="#40916c"/>
+                        <path d="M50 65 L50 85" stroke="#2d6a4f" stroke-width="4" stroke-linecap="round"/>
+                    </svg>
+                </div>
+                <h1 class="text-2xl font-bold text-brand-800">Bienvenido a Workseed</h1>
+                <p class="text-sm text-gray-500 mt-1">Conecta de manera calmada, profesional y transparente.</p>
+            </div>
+
+            <!-- Formulario de Registro e Inicio de Sesión -->
+            <form id="form-auth" onsubmit="handleAuthSubmit(event)" class="space-y-4">
+                
+                <!-- Selección de Rol -->
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wider mb-2">Selecciona tu Rol</label>
+                    <div class="grid grid-cols-2 gap-3">
+                        <button type="button" id="role-empleado" onclick="selectRole('empleado')" 
+                            class="role-btn p-3 rounded-xl border-2 text-center transition-all flex flex-col items-center border-brand-600 bg-brand-50 text-brand-700 font-medium">
+                            <span class="text-xl mb-1">👤</span>
+                            <span class="text-xs">Empleado / Candidato</span>
+                        </button>
+                        <button type="button" id="role-empleador" onclick="selectRole('empleador')" 
+                            class="role-btn p-3 rounded-xl border-2 border-gray-200 text-center transition-all flex flex-col items-center hover:border-brand-200 text-gray-600">
+                            <span class="text-xl mb-1">🏢</span>
+                            <span class="text-xs">Empleador / Empresa</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Campos de Datos de Usuario -->
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-medium text-gray-700 mb-1">Nombres</label>
+                        <input type="text" id="auth-nombres" required placeholder="Ej. Camila" 
+                            class="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:border-brand-600 text-sm bg-surface">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-700 mb-1">Apellidos</label>
+                        <input type="text" id="auth-apellidos" required placeholder="Ej. Silva" 
+                            class="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:border-brand-600 text-sm bg-surface">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-medium text-gray-700 mb-1">Nombre de usuario</label>
+                    <input type="text" id="auth-username" required placeholder="Ej. camilasilva" 
+                        class="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:border-brand-600 text-sm bg-surface">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-medium text-gray-700 mb-1">Correo Electrónico</label>
+                    <div class="flex gap-2">
+                        <input type="email" id="auth-email" required placeholder="correo@ejemplo.com" 
+                            class="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:border-brand-600 text-sm bg-surface">
+                        <button type="button" onclick="sendVerificationCode()" 
+                            class="px-3 py-2.5 bg-brand-100 text-brand-700 hover:bg-brand-200 text-xs font-medium rounded-xl whitespace-nowrap transition-colors">
+                            Generar Clave
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Campo para Clave de Acceso Asignada -->
+                <div>
+                    <label class="block text-xs font-medium text-gray-700 mb-1">Contraseña de Acceso Asignada</label>
+                    <input type="password" id="auth-code" required placeholder="Tu contraseña generada o asignada"
+                        class="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:border-brand-600 text-sm font-semibold bg-surface">
+                </div>
+
+                <button type="submit" 
+                    class="w-full py-3 bg-brand-600 hover:bg-brand-700 text-white font-medium text-sm rounded-xl transition-all shadow-sm">
+                    Iniciar Sesión en Workseed
+                </button>
+            </form>
+        </div>
+    </div>
+
+
+    <!-- PANTALLA 2: APLICACIÓN PRINCIPAL WORKSEED (SPA) -->
+    <div id="app-screen" class="hidden flex-col min-h-screen">
+        
+        <!-- HEADER PRINCIPAL -->
+        <header class="bg-white border-b border-gray-100 sticky top-0 z-30">
+            <div class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between gap-4">
+                
+                <div class="flex items-center gap-3">
+                    <!-- Botón Hamburguesa Cuadrado de 3 Rayas -->
+                    <button id="menu-btn" onclick="toggleSidebar()" 
+                        class="w-10 h-10 border border-gray-200 rounded-xl flex flex-col justify-center items-center gap-1 hover:bg-brand-50 transition-colors">
+                        <span class="w-5 h-0.5 bg-brand-700 rounded-full"></span>
+                        <span class="w-5 h-0.5 bg-brand-700 rounded-full"></span>
+                        <span class="w-5 h-0.5 bg-brand-700 rounded-full"></span>
+                    </button>
+                    
+                    <!-- Logo -->
+                    <div class="flex items-center gap-2 cursor-pointer" onclick="switchView('view-feed')">
+                        <svg width="24" height="24" viewBox="0 0 100 100">
+                            <path d="M50 65 C40 45 25 40 10 42 C20 65 40 70 50 65 Z" fill="#2d6a4f"/>
+                            <path d="M50 65 C60 45 75 40 90 42 C80 65 60 70 50 65 Z" fill="#40916c"/>
+                            <path d="M50 65 L50 85" stroke="#2d6a4f" stroke-width="4" stroke-linecap="round"/>
+                        </svg>
+                        <span class="font-bold text-lg text-brand-800 tracking-tight">Workseed</span>
+                    </div>
+                </div>
+
+                <!-- Buscador Central -->
+                <div class="hidden sm:flex flex-1 max-w-md">
+                    <input type="text" placeholder="Buscar publicaciones u ofertas de trabajo..." 
+                        class="w-full px-4 py-2 rounded-full border border-gray-200 text-xs bg-surface focus:outline-none focus:border-brand-500">
+                </div>
+
+                <!-- User Profile Badge & Status -->
+                <div class="flex items-center gap-3">
+                    <div class="text-right hidden md:block">
+                        <div id="user-display-name" class="text-xs font-semibold text-gray-800">---</div>
+                        <div id="user-display-role" class="text-[10px] text-brand-600 capitalize font-medium">---</div>
+                    </div>
+                    <div id="user-avatar-badge" 
+                        class="w-9 h-9 rounded-full bg-brand-100 border border-brand-200 text-brand-700 flex items-center justify-center font-bold text-xs">
+                        --
+                    </div>
+                    <button onclick="logout()" title="Cerrar Sesión" class="text-gray-400 hover:text-red-500 text-sm ml-1">
+                        🚪
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- SIDEBAR MENU DESPLEGABLE -->
+        <aside id="sidebar" 
+            class="fixed inset-y-0 left-0 w-64 bg-white shadow-xl z-40 transform -translate-x-full transition-transform duration-300 ease-in-out p-5 flex flex-col justify-between">
+            <div>
+                <div class="flex items-center justify-between pb-4 mb-4 border-b border-gray-100">
+                    <span class="font-bold text-brand-800 text-sm">Menú de Navegación</span>
+                    <button onclick="toggleSidebar()" class="text-gray-400 hover:text-gray-600 text-lg">&times;</button>
+                </div>
+
+                <nav class="space-y-1" id="sidebar-nav-items">
+                    <!-- Se llena dinámicamente según el ROL del usuario -->
+                </nav>
+
+                <div class="mt-6 pt-4 border-t border-gray-100">
+                    <button onclick="showSqlModal()" class="w-full px-3 py-2 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 border border-emerald-200">
+                        💾 Script SQL para PHP
+                    </button>
+                </div>
+            </div>
+
+            <div class="pt-4 border-t border-gray-100 text-center">
+                <p class="text-[11px] text-gray-400">Workseed Platform v1.0 &bull; 2026</p>
+            </div>
+        </aside>
+    <!-- MODAL SQL SCRIPT PARA PHP -->
+    <div id="sql-modal" class="fixed inset-0 bg-black/40 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-2xl rounded-2xl shadow-xl p-6 space-y-4 max-h-[85vh] flex flex-col">
+            <div class="flex items-center justify-between border-b border-gray-100 pb-3">
+                <h3 class="font-bold text-brand-800 text-base flex items-center gap-2">
+                    <span>🗄️</span> Script SQL de Base de Datos para PHP
+                </h3>
+                <button onclick="closeSqlModal()" class="text-gray-400 hover:text-gray-600 font-bold text-lg">&times;</button>
+            </div>
+            
+            <p class="text-xs text-gray-500">Copia y ejecuta este script en MySQL/MariaDB (phpMyAdmin o MySQL Workbench) para crear la base de datos adaptable a tus scripts PHP (`PDO` / `mysqli`):</p>
+            
+            <pre class="bg-gray-900 text-emerald-400 p-4 rounded-xl text-xs font-mono overflow-y-auto flex-1 custom-scrollbar" id="sql-script-code">
+CREATE DATABASE IF NOT EXISTS workseed_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE workseed_db;
+
+-- 1. Tabla Empleado
+CREATE TABLE IF NOT EXISTS Empleado (
+    ID_Empleado INT AUTO_INCREMENT PRIMARY KEY,
+    Nombre_usuario VARCHAR(50) NOT NULL UNIQUE,
+    Correo_electronico VARCHAR(100) NOT NULL UNIQUE,
+    Password VARCHAR(255) NOT NULL,
+    Nombres VARCHAR(100) NOT NULL,
+    Apellidos VARCHAR(100) NOT NULL,
+    Fecha_Registro DATETIME DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+
+-- 2. Tabla Hoja de vida (Relación 1 a 1 con Empleado)
+CREATE TABLE IF NOT EXISTS Hoja_de_vida (
+    ID_Hoja_Vida INT AUTO_INCREMENT PRIMARY KEY,
+    ID_Empleado INT UNIQUE NOT NULL,
+    Experiencia_laboral TEXT,
+    Informacion_academica TEXT,
+    Datos_caracteristicos TEXT,
+    FOREIGN KEY (ID_Empleado) REFERENCES Empleado(ID_Empleado) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+-- 3. Tabla Empleador
+CREATE TABLE IF NOT EXISTS Empleador (
+    ID_Empleador INT AUTO_INCREMENT PRIMARY KEY,
+    Nombres VARCHAR(100) NOT NULL,
+    Apellidos VARCHAR(100) NOT NULL,
+    Nombre_usuario VARCHAR(50) NOT NULL UNIQUE,
+    Correo_electronico VARCHAR(100) NOT NULL UNIQUE,
+    Password VARCHAR(255) NOT NULL,
+    Direccion VARCHAR(200)
+) ENGINE=InnoDB;
+
+-- 4. Tabla Oferta (Relación 1 a N con Empleador)
+CREATE TABLE IF NOT EXISTS Oferta (
+    ID_Oferta INT AUTO_INCREMENT PRIMARY KEY,
+    ID_Empleador INT NOT NULL,
+    Empresa VARCHAR(100) NOT NULL,
+    Contrato VARCHAR(50) NOT NULL,
+    Requisitos TEXT NOT NULL,
+    SalarioOferta VARCHAR(50) NOT NULL,
+    Condiciones_laborales VARCHAR(150),
+    Fecha_Publicacion DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (ID_Empleador) REFERENCES Empleador(ID_Empleador) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+-- 5. Tabla Postulaciones (Relación N a N entre Empleado u Oferta)
+CREATE TABLE IF NOT EXISTS Postulaciones (
+    ID_Postulacion INT AUTO_INCREMENT PRIMARY KEY,
+    ID_Empleado INT NOT NULL,
+    ID_Oferta INT NOT NULL,
+    Evaluacion_u_entrevista VARCHAR(100) DEFAULT 'En evaluación',
+    Formulario TEXT,
+    Fecha_Postulacion DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (ID_Empleado) REFERENCES Empleado(ID_Empleado) ON DELETE CASCADE,
+    FOREIGN KEY (ID_Oferta) REFERENCES Oferta(ID_Oferta) ON DELETE CASCADE
+) ENGINE=InnoDB;
+            </pre>
+            
+            <div class="flex justify-end gap-2 pt-2 border-t border-gray-100">
+                <button onclick="copySqlScript()" class="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs font-medium transition-colors">
+                    📋 Copiar SQL
+                </button>
+                <button onclick="closeSqlModal()" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-xs font-medium transition-colors">
+                    Cerrar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- LOGICA JAVASCRIPT DINÁMICA -->
+    <script>
+        // ESTADO DE LA APLICACIÓN (DATABASE EN MEMORIA LOCAL)
+        let selectedRole = 'empleado';
+        let generatedVerificationCode = null;
+        let currentUser = null;
+
+        // Tablas dinámicas según modelo ER
+        let hojaDeVidaData = null; // Hoja de vida del empleado activo
+        let ofertasDB = [];        // Publicaciones de ofertas creadas
+        let postulacionesDB = [];  // Registros de postulaciones creadas
+
+        // 1. SELECCIÓN DE ROL
+        window.selectRole = function(role) {
+            selectedRole = role;
+            const btnEmpleado = document.getElementById('role-empleado');
+            const btnEmpleador = document.getElementById('role-empleador');
+
+            if (role === 'empleado') {
+                btnEmpleado.className = 'role-btn p-3 rounded-xl border-2 text-center transition-all flex flex-col items-center border-brand-600 bg-brand-50 text-brand-700 font-medium';
+                btnEmpleador.className = 'role-btn p-3 rounded-xl border-2 border-gray-200 text-center transition-all flex flex-col items-center hover:border-brand-200 text-gray-600';
+            } else {
+                btnEmpleador.className = 'role-btn p-3 rounded-xl border-2 text-center transition-all flex flex-col items-center border-brand-600 bg-brand-50 text-brand-700 font-medium';
+                btnEmpleado.className = 'role-btn p-3 rounded-xl border-2 border-gray-200 text-center transition-all flex flex-col items-center hover:border-brand-200 text-gray-600';
+            }
+        };
+
+        // 2. ENVIAR / ASIGNAR CONTRASEÑA AL CORREO
+        window.sendVerificationCode = function() {
+            const email = document.getElementById('auth-email').value;
+            if (!email || !email.includes('@')) {
+                showToast('Por favor introduce un correo electrónico válido.', 'warning');
+                return;
+            }
+
+            // Generar clave segura de acceso de 8 caracteres
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#';
+            let password = '';
+            for (let i = 0; i < 8; i++) {
+                password += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            generatedVerificationCode = password;
+            
+            showToast(`🔑 Contraseña asignada enviada a ${email}: ${generatedVerificationCode}`, 'info', 9000);
+            document.getElementById('auth-code').value = generatedVerificationCode;
+        };
+
+        // 3. INICIO DE SESIÓN CON CONTRASEÑA
+        window.handleAuthSubmit = function(e) {
+            e.preventDefault();
+            const inputCode = document.getElementById('auth-code').value;
+
+            if (!generatedVerificationCode || inputCode !== generatedVerificationCode) {
+                showToast('La contraseña ingresada no es válida o no ha sido generada.', 'error');
+                return;
+            }
+
+            // Registrar usuario activo
+            const nombres = document.getElementById('auth-nombres').value;
+            const apellidos = document.getElementById('auth-apellidos').value;
+            const username = document.getElementById('auth-username').value;
+            const email = document.getElementById('auth-email').value;
+            const initials = (nombres[0] + apellidos[0]).toUpperCase();
+
+            currentUser = {
+                id: Date.now(),
+                nombres,
+                apellidos,
+                username,
+                email,
+                role: selectedRole,
+                initials
+            };
+
+            showToast(`¡Bienvenido a Workseed, ${nombres}!`, 'success');
+            initAppView();
+        };
+
+        // Modal SQL
+        window.showSqlModal = function() {
+            document.getElementById('sql-modal').classList.remove('hidden');
+        };
+
+        window.closeSqlModal = function() {
+            document.getElementById('sql-modal').classList.add('hidden');
+        };
+
+        window.copySqlScript = function() {
+            const sqlText = document.getElementById('sql-script-code').innerText;
+            const tempInput = document.createElement('textarea');
+            tempInput.value = sqlText;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempInput);
+            showToast('¡Script SQL copiado al portapapeles!', 'success');
+        };
+
+        // 2. ENVIAR CÓDIGO DE VERIFICACIÓN SIMULADO AL CORREO
+        window.sendVerificationCode = function() {
+            const email = document.getElementById('auth-email').value;
+            if (!email || !email.includes('@')) {
+                showToast('Por favor introduce un correo electrónico válido.', 'warning');
+                return;
+            }
+
+            // Generar código de 6 dígitos
+            generatedVerificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+            
+            showToast(`✉️ Clave enviada a ${email}: ${generatedVerificationCode}`, 'info', 8000);
+            document.getElementById('auth-code').value = generatedVerificationCode;
+        };
+
+        // 3. INICIO DE SESIÓN
+        window.handleAuthSubmit = function(e) {
+            e.preventDefault();
+            const inputCode = document.getElementById('auth-code').value;
+
+            if (!generatedVerificationCode || inputCode !== generatedVerificationCode) {
+                showToast('El código de verificación no coincide o no se ha generado.', 'error');
+                return;
+            }
+
+            // Registrar usuario activo
+            const nombres = document.getElementById('auth-nombres').value;
+            const apellidos = document.getElementById('auth-apellidos').value;
+            const username = document.getElementById('auth-username').value;
+            const email = document.getElementById('auth-email').value;
+            const initials = (nombres[0] + apellidos[0]).toUpperCase();
+
+            currentUser = {
+                id: Date.now(),
+                nombres,
+                apellidos,
+                username,
+                email,
+                role: selectedRole,
+                initials
+            };
+
+            showToast(`¡Bienvenido a Workseed, ${nombres}!`, 'success');
+            initAppView();
+        };
+
+        // 4. INICIALIZAR VISTAS SPA TRAS INICIAR SESIÓN
+        function initAppView() {
+            document.getElementById('auth-screen').classList.add('hidden');
+            document.getElementById('app-screen').classList.remove('hidden');
+            document.getElementById('app-screen').classList.add('flex');
+
+            // Renderizar datos de usuario
+            document.getElementById('user-display-name').textContent = `${currentUser.nombres} ${currentUser.apellidos}`;
+            document.getElementById('user-display-role').textContent = currentUser.role === 'empleado' ? 'Empleado / Candidato' : 'Empleador / Empresa';
+            document.getElementById('user-avatar-badge').textContent = currentUser.initials;
+
+            document.getElementById('card-avatar').textContent = currentUser.initials;
+            document.getElementById('card-name').textContent = `${currentUser.nombres} ${currentUser.apellidos}`;
+            document.getElementById('card-username').textContent = `@${currentUser.username}`;
+            document.getElementById('card-role').textContent = currentUser.role;
+            document.getElementById('card-email').textContent = currentUser.email;
+
+            // Renderizar menú lateral según el rol
+            setupSidebarNav();
+
+            // Configurar botón de creación si es empleador
+            const wrapper = document.getElementById('btn-create-offer-wrapper');
+            if (currentUser.role === 'empleador') {
+                wrapper.innerHTML = `
+                    <button onclick="switchView('view-crear-oferta')" 
+                        class="px-4 py-2 bg-brand-600 text-white text-xs font-medium rounded-xl hover:bg-brand-700 transition-colors shadow-sm">
+                        + Nueva Oferta
+                    </button>
+                `;
+            } else {
+                wrapper.innerHTML = '';
+            }
+
+            // Cargar estado inicial del feed
+            renderFeed();
+            switchView('view-feed');
+        }
+
+        // 5. NAVEGACIÓN SPA Y SIDEBAR
+        function setupSidebarNav() {
+            const navContainer = document.getElementById('sidebar-nav-items');
+            navContainer.innerHTML = '';
+
+            let navLinks = [];
+            if (currentUser.role === 'empleado') {
+                navLinks = [
+                    { id: 'view-feed', label: 'Inicio / Publicaciones', icon: '🏠' },
+                    { id: 'view-hoja-vida', label: 'Mi Hoja de Vida', icon: '📄' },
+                    { id: 'view-postulaciones', label: 'Mis Postulaciones', icon: '📋' }
+                ];
+            } else {
+                navLinks = [
+                    { id: 'view-feed', label: 'Inicio / Publicaciones', icon: '🏠' },
+                    { id: 'view-crear-oferta', label: 'Crear Nueva Oferta', icon: '➕' }
+                ];
+            }
+
+            navLinks.forEach(link => {
+                const btn = document.createElement('button');
+                btn.className = 'w-full text-left px-3.5 py-2.5 rounded-xl text-xs font-medium flex items-center gap-2.5 text-gray-600 hover:bg-brand-50 hover:text-brand-700 transition-colors';
+                btn.innerHTML = `<span>${link.icon}</span> <span>${link.label}</span>`;
+                btn.onclick = () => {
+                    switchView(link.id);
+                    toggleSidebar();
+                };
+                navContainer.appendChild(btn);
+            });
+        }
+
+        window.switchView = function(viewId) {
+            document.querySelectorAll('.view-page').forEach(page => page.classList.add('hidden'));
+            const targetPage = document.getElementById(viewId);
+            if (targetPage) {
+                targetPage.classList.remove('hidden');
+            }
+
+            if (viewId === 'view-postulaciones') {
+                renderPostulaciones();
+            }
+        };
+
+        window.toggleSidebar = function() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            const isOpen = !sidebar.classList.contains('-translate-x-full');
+
+            if (isOpen) {
+                sidebar.classList.add('-translate-x-full');
+                overlay.classList.add('hidden');
+            } else {
+                sidebar.classList.remove('-translate-x-full');
+                overlay.classList.remove('hidden');
+            }
+        };
+
+        // 6. GESTIÓN DE OFERTAS (PUBLICACIONES)
+        window.createOffer = function(e) {
+            e.preventDefault();
+
+            const nuevaOferta = {
+                id: Date.now(),
+                empresa: document.getElementById('oferta-empresa').value,
+                contrato: document.getElementById('oferta-contrato').value,
+                salario: document.getElementById('oferta-salario').value,
+                condiciones: document.getElementById('oferta-condiciones').value,
+                requisitos: document.getElementById('oferta-requisitos').value,
+                empleadorName: `${currentUser.nombres} ${currentUser.apellidos}`,
+                fecha: new Date().toLocaleDateString()
+            };
+
+            ofertasDB.unshift(nuevaOferta);
+            showToast('¡Oferta laboral publicada correctamente en el feed!', 'success');
+            document.getElementById('form-nueva-oferta').reset();
+            
+            renderFeed();
+            switchView('view-feed');
+        };
+
+        function renderFeed() {
+            const container = document.getElementById('feed-container');
+            container.innerHTML = '';
+
+            if (ofertasDB.length === 0) {
+                container.innerHTML = `
+                    <div class="bg-white rounded-xl p-8 text-center border border-gray-100">
+                        <div class="w-12 h-12 bg-brand-50 rounded-full flex items-center justify-center mx-auto mb-3 text-brand-600 text-xl">🌱</div>
+                        <h4 class="font-medium text-gray-700 text-sm mb-1">Aún no hay publicaciones en el feed</h4>
+                        <p class="text-xs text-gray-400 max-w-sm mx-auto">
+                            ${currentUser.role === 'empleador' 
+                                ? 'Puedes ser el primero en publicar una oferta para atraer talento.' 
+                                : 'Las ofertas de trabajo publicadas por los empleadores aparecerán aquí.'}
+                        </p>
+                    </div>
+                `;
+                return;
+            }
+
+            ofertasDB.forEach(oferta => {
+                const card = document.createElement('div');
+                card.className = 'bg-white rounded-xl p-5 border border-gray-100 shadow-sm space-y-3';
+                
+                const yaPostulado = postulacionesDB.some(p => p.ofertaId === oferta.id && p.empleadoId === currentUser.id);
+
+                card.innerHTML = `
+                    <div class="flex items-start justify-between">
+                        <div>
+                            <h3 class="font-semibold text-gray-800 text-sm">${oferta.empresa}</h3>
+                            <p class="text-[11px] text-gray-400">Publicado por ${oferta.empleadorName} &bull; ${oferta.fecha}</p>
+                        </div>
+                        <span class="px-2.5 py-1 bg-brand-100 text-brand-700 rounded-full font-semibold text-[11px]">
+                            ${oferta.salario}
+                        </span>
+                    </div>
+
+                    <div class="text-xs text-gray-600 space-y-1">
+                        <p><strong>Contrato:</strong> ${oferta.contrato}</p>
+                        <p><strong>Condiciones:</strong> ${oferta.condiciones}</p>
+                        <p><strong>Requisitos:</strong> ${oferta.requisitos}</p>
+                    </div>
+
+                    <div class="pt-2 flex justify-end">
+                        ${currentUser.role === 'empleado' ? `
+                            <button onclick="applyToOffer(${oferta.id})" ${yaPostulado ? 'disabled' : ''}
+                                class="px-4 py-2 text-xs font-medium rounded-xl transition-colors ${
+                                    yaPostulado 
+                                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
+                                    : 'bg-brand-600 hover:bg-brand-700 text-white'
+                                }">
+                                ${yaPostulado ? '✓ Postulado' : 'Postularme'}
+                            </button>
+                        ` : `
+                            <span class="text-[11px] text-gray-400 italic">Vista previa para empleadores</span>
+                        `}
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // 7. POSTULACIÓN Y HOJA DE VIDA (EMPLEADO)
+        window.saveHojaDeVida = function(e) {
+            e.preventDefault();
+            hojaDeVidaData = {
+                experiencia: document.getElementById('hv-experiencia').value,
+                academica: document.getElementById('hv-academica').value,
+                datos: document.getElementById('hv-datos').value
+            };
+            showToast('Hoja de vida guardada exitosamente.', 'success');
+        };
+
+        window.applyToOffer = function(ofertaId) {
+            if (!hojaDeVidaData || !hojaDeVidaData.experiencia) {
+                showToast('Por favor completa tu Hoja de Vida antes de postularte.', 'warning');
+                switchView('view-hoja-vida');
+                return;
+            }
+
+            const oferta = ofertasDB.find(o => o.id === ofertaId);
+            const nuevaPostulacion = {
+                id: Date.now(),
+                ofertaId: oferta.id,
+                empresa: oferta.empresa,
+                salario: oferta.salario,
+                empleadoId: currentUser.id,
+                estado: 'En evaluación'
+            };
+
+            postulacionesDB.push(nuevaPostulacion);
+            showToast(`Te has postulado con éxito a ${oferta.empresa}`, 'success');
+            renderFeed();
+        };
+
+        function renderPostulaciones() {
+            const container = document.getElementById('postulaciones-container');
+            container.innerHTML = '';
+
+            const misPostulaciones = postulacionesDB.filter(p => p.empleadoId === currentUser.id);
+
+            if (misPostulaciones.length === 0) {
+                container.innerHTML = `
+                    <div class="p-6 text-center text-gray-400 text-xs">
+                        Aún no te has postulado a ninguna oferta laboral.
+                    </div>
+                `;
+                return;
+            }
+
+            misPostulaciones.forEach(p => {
+                const item = document.createElement('div');
+                item.className = 'p-3 rounded-xl border border-gray-100 bg-surface flex justify-between items-center text-xs';
+                item.innerHTML = `
+                    <div>
+                        <div class="font-semibold text-gray-800">${p.empresa}</div>
+                        <div class="text-gray-400 text-[10px]">Vacante: ${p.salario}</div>
+                    </div>
+                    <span class="px-2.5 py-1 bg-brand-50 text-brand-700 rounded-full font-medium text-[11px]">
+                        ${p.estado}
+                    </span>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        // 8. NOTIFICACIONES TOAST MEJORADAS
+        function showToast(message, type = 'info', duration = 4000) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            
+            const bgColors = {
+                info: 'bg-brand-800 text-white',
+                success: 'bg-emerald-700 text-white',
+                warning: 'bg-amber-600 text-white',
+                error: 'bg-red-600 text-white'
+            };
+
+            toast.className = `pointer-events-auto px-4 py-3 rounded-xl shadow-lg text-xs font-medium transition-all transform translate-y-2 opacity-0 flex items-center gap-2 ${bgColors[type] || bgColors.info}`;
+            toast.textContent = message;
+
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.classList.remove('translate-y-2', 'opacity-0');
+            }, 10);
+
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-2');
+                setTimeout(() => toast.remove(), 300);
+            }, duration);
+        }
+
+        window.logout = function() {
+            currentUser = null;
+            document.getElementById('form-auth').reset();
+            document.getElementById('app-screen').classList.add('hidden');
+            document.getElementById('auth-screen').classList.remove('hidden');
+            showToast('Sesión cerrada correctamente.', 'info');
+        };
+    </script>
+</body>
+</html>
